@@ -211,3 +211,270 @@ obj.getName();
 ```
 
 이처럼 일반 함수로 호출된 모든 함수(중첩, 콜백 함수 포함) 내부의 this에는 전역 객체가 바인딩됨.
+
+```
+
+var name = "mee";
+const person = {
+  name: "park",
+  getName() {
+    // this 바인딩(obj)을 변수 that에 할당
+    const that = this;
+    setTimeout(function(){
+      console.log(that.name) // park
+    },100)
+  },
+};
+
+obj.getName();
+
+```
+
+위 방법 외에도 자바스크립트는 this를 명시적으로 바인딩 할 수 있는 Function.prototype.apply, Function.prototype.bind, Function.prototype.call이 있다.
+
+```
+
+var name = "mee";
+const person = {
+  name: "park",
+  getName() {
+    // 콜백 함수에 명시적으로 this를 바인딩
+    setTimeout(function(){
+      console.log(this.name) // park
+    }.bind(this),100)
+  },
+};
+
+obj.getName();
+
+```
+
+```
+
+var name = "mee";
+const person = {
+  name: "park",
+  getName() {
+    // 화살표 함수 내부의 this는 상위 스코프 this를 가리킴.
+    setTimeout(()=>{
+      console.log(this.name) // park
+    },100)
+  },
+};
+
+obj.getName();
+
+```
+
+### 메서드 호출
+
+메서드 내부의 this는 메서드를 소유한 객체가 아닌 메서드를 호출한 객체 바인딩된다는 것.
+
+```
+
+var name = "mee";
+const person = {
+  name: "park",
+    getName() {
+      // 메서드 내부의 this는 메서드를 호출한 객체에 바인딩됨.
+    return this.name
+  },
+};
+
+console.log(obj.getName()); // Lee
+
+```
+
+```
+const anotherPerson ={
+  name: 'kim'
+}
+
+
+//getName 메서드를 anotherPerson 객체의 메서드로 할당
+anotherPerson.getName = person.getName;
+
+
+//getName 메서드를 호출한 객체는 anotherPerson이다.
+console.log(anotherPerson.getName()); // kim
+
+//getName 메서드를 변수에 할당
+const getName = person.getName
+
+// getName 메서드를 일반 함수로 호출
+console.log(getName()) // ''
+// 일반 함수로 호출된 getName 함수 내부의 this.name은 브라우저 환경에서 window.name과 같다.
+//브라우저 환경에서 window.name은 브라우저 창의 이름을 나타내는 빌트인 프로퍼티이며 기본값 ''이다.
+// node.js 환경에서는 this.name은 undefined이다.
+
+```
+
+```
+function Person(){
+  this.name = name;
+};
+
+Person.prototype.getName = function(){
+  return this.name
+}
+
+const me = new Person('Lee')
+
+//getName 메서드를 호출한 객체는 me다
+console.log(me.getName()) //1 .Lee
+
+Person.prototype.name = 'kim'
+
+// getName 메서드를 호출한 객체는 Person.prototype
+console.log(Person.prototype.getName()) //2.'kim'
+
+```
+
+1번의 경우 getName 메서드를 호출한 객체는 me다. getName 메서드 내부의 this는 me를 가리키며 this.name은 'Lee'다.
+
+2번의 경우 getName 메서드를 호출한 객체는 Person.prototype이다. Person.prototype도 객체이므로 직접 메서드를 호출할 수 있다.
+
+### 생성자 함수 호출
+
+```
+function Circle(redius) {
+  this.redius = redius;
+  this.getDiament = function () {
+    return 2 * this.redius;
+  };
+}
+
+const circle1 = new Circle(5);
+
+const circle2 = new Circle(10);
+
+console.log(circle1.getDiament());
+console.log(circle2.getDiament());
+
+```
+
+생성자 함수는 이름 그대로 객체(인스턴스)를 생성하는 함수다. 일반 함수와 동일한 방법으로 생성자 함수를 정의하고 new 연산자와 함께 호출하면 해당 함수는 생성자 함수로 동작한다. 만약 new 연산자와 함께 생성자 함수를 호출하지 않으면 생성자 함수가 아니라 일반 함수로 동작
+
+```
+//new 연산자와 함께 호출하지 않으면 생성자 함수로 동작하지 않는다.
+//즉 일반적인 함수 호출
+const circle3 = Circle(15);
+//일반 함수로 호출된 circle3은 반환문이 없으므로 암묵적으로 undefiend 반환
+console.log(circle3); // undefined
+//일반 함수로 호출된 circle 내부의 this는 전역 객체를 가리킨다.
+console.log(redius); //15
+
+```
+
+### Function.prototype.apply/bind/call 메서드에 의한 간접 호출
+
+Function.prototype.apply, Function.prototype.call 메서드는 this로 사용할 객체와 인수 리스트를 인수로 전달받아 함수를 호출함.
+
+```
+function getThisBinding() {
+  return this;
+}
+
+// this로 사용할 객체
+const thisArg = { a: 1 };
+
+console.log(getThisBinding()); //window
+
+
+//getThisBinding 함수를 호출하면서 인수로 전달한 객체를 getThisBinding 함수의 this에 바인딩한다.
+console.log(getThisBinding.apply(thisArg)); //{a:1}
+console.log(getThisBinding.call(thisArg)); //{a:1}
+```
+
+apply와 call 메서드의 본질적인 기능은 함수를 호출 apply와 call 메서드는 함수를 호출하면서 첫 번째 인수로 전달한 특정 객체를 호출한 함수의 this에 바인딩됨.
+
+```
+function getThisBinding() {
+  console.log(arguments)
+  return this;
+}
+
+// this로 사용할 객체
+const thisArg = { a: 1 };
+
+//getThisBinding 함수를 호출하면서 인수로 전달한 객체를 getThisBinding 함수의 this에 바인딩한다.
+// apply 메서드는 호출할 함수의 인수를 배열로 묶어 전달한다
+console.log(getThisBinding.apply(thisArg, [1, 2, 3])); //{a:1}
+// arguments(3) [1,2,3 callee: f, Symbol(Symbol.iterator):f]
+// {a:1}
+
+//call 메서드는 호출할 함수의 인수를 쉼표로 구분한 리스트 형식으로 전달
+console.log(getThisBinding.call(thisArg, 1, 2, 3)); //{a:1}
+//arguemnts(3) [1,2,3 callee: f,  Symbol(Symbol.iterator):f]
+// {a:1}
+```
+
+apply 메서드는 호출할 함수의 인수를 배열로 묶어 전달. call 메서드는 호출할 함수의 인수를 쉼표로 구분한 리스트 형식으로 전달 호출 함수에 인수를 전달하는 방식만 다를 뿐 this로 사용할 객체를 전달하면서 함수를 호출하는 것은 동일하다
+
+apply와 call 메서드의 대표적인 용도는 augments 객체와 같은 유사 배열 객체에 배열 메서드를 사용하는 경우.
+
+Function.prototype.bind 메서드는 apply와 call 메서드와 달리 함수를 호출하지 않는다. 다만 첫번째 인수로 전달한 값으로 this 바인딩이 교체된 함수를 새롭게 생성해 반환한다.
+
+```
+function getThisBinding() {
+  return this;
+}
+
+// this로 사용할 객체
+const thisArg = { a: 1 };
+
+//bind 메서드는 첫 번째 인수로 전달한 thisArg로 this 바인딩이 교체된 getThisBinding 함수를 새롭게 생성해 반환한다.
+console.log(getThisBinding.bind(thisArg)); //getThisBinding
+// bind 메서드는 함수를 호출하지는 않으므로 명시적으로 호출해야 함.
+console.log(getThisBinding.call(thisArg)()); //{a:1}
+```
+
+bind 메서드는 메서드의 this와 메서드 내부의 중첩 함수 또는 콜백 함수의 this가 불일치하는 문제를 해결하기 위해 사용됨.
+
+```
+const person = {
+  name: "park",
+
+  getName() {
+    //1
+    setTimeout(callback,10)
+  },
+};
+
+person.getName(function(){
+  console.log(`hi my name is ${this.name}`)
+})
+//일반 함수로 호출된 콜백 함수 내부의 this.name은 브라우저 환경에서 window.name과 같다.
+//중첩 함수의 경우 this는 window 즉 ''
+// node의 경우에는 global undefined를 반환
+
+```
+
+person.getName의 콜백 함수가 호출되기 이전인 1번의 시점에서 this는 getName 메서드를 호출한 객체 즉 person 객체를 가리킴. person.getName의 콜백 함수가 일반 함수로서 호출된 2의 시점에서 this는 전역 객체를 가리킴. 따라서 person.getName의 콜백 함수 내부에서 this.name은 window.name과 같다.
+
+이때 위 예제에서 person.getName의 콜백 함수는 person.getName를 돕는 헬퍼 함수(보조 함수) 역할을 하기 때문에 person.getName 내부의 this와 콜백 함수 내부의 this가 상이하면 문맥상 문제가 발생
+
+이를 해결하기 위해 bind 메서드를 사용하여 일치시킨다.
+
+```
+const person = {
+  name: "park",
+
+  getName() {
+    //bind 메서드로 callback 함수 내부의 this 바인딩을 전달
+    setTimeout(callback.bind(this),10)
+  },
+};
+
+person.getName(function(){
+  console.log(`hi my name is ${this.name}`) // hi my name is park
+})
+
+```
+
+| 함수 호출 방식                     | this 바인딩                                                    |
+| ---------------------------------- | -------------------------------------------------------------- |
+| 일반 함수 호출                     | 전역 객체                                                      |
+| 메서드 호출                        | 메서드를 호출한 객체                                           |
+| 생성자 함수 호출                   | 생성자 함수가(미래에)생성할 인스턴스                           |
+| Function.prototype.call/bind/apply | Function.prototype.call/bind/apply에 첫번째 인수로 전달한 객체 |
