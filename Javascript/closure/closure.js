@@ -41,15 +41,43 @@ console.log(decreaser()); // -2
 // }
 // outer();
 
+// const x = 1;
+
+// function foo() {
+//   const x = 10;
+//   bar();
+// }
+
+// function bar() {
+//   console.log(x);
+// }
+
+// foo(); //?
+// bar(); //?
+
 const x = 1;
+
 function foo() {
   const x = 10;
-  bar();
+  const inner = function () {
+    console.log(x);
+  };
+  return inner;
 }
 
-function bar() {
-  console.log(x);
+const innerFunc = foo();
+
+innerFunc();
+
+function foo() {
+  const x = 1;
+  const y = 1;
+  function bar() {
+    const z = 3;
+    console.log(z);
+  }
+  return bar;
 }
 
-foo(); //?
-bar(); //?
+const bar = foo();
+bar();
