@@ -73,3 +73,9 @@ const gd = new Good("Lee");
 
 // 결국 Good.prototype과 gd.__proto__는 같은 동일한 프로토타입을 가리킴.
 console.log(Good.prototype === gd.__proto__); // ture
+
+function Ex(name) {
+  this.name = name;
+}
+
+const ex = new Ex("Lee");
